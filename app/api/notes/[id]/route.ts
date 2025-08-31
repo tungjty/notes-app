@@ -43,8 +43,8 @@ export async function PUT(
     const body = await req.json(); // 📌 data mới (title, content)
     // console.log("📌 Update ID:", id, "Body:", body);
 
-    throw new Error("Failed to update note"); // 👈 giả lập update failed
-    
+    // throw new Error("Failed to update note"); // 👈 giả lập update failed
+
     const updatedNote = await Note.findByIdAndUpdate(id, body, {
       new: true, // trả về document sau khi update
       runValidators: true,
