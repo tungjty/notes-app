@@ -11,7 +11,7 @@ export async function GET(
     await connectDB();
 
     const { id } = await context.params;
-    console.log("📌 noteÏ ID:", id);
+    console.log("📌 note ID:", id);
 
     const note = await Note.findById(id);
     if (!note) {
@@ -36,10 +36,15 @@ export async function PUT(
   try {
     await connectDB();
 
+    // 👇 giả lập delay N giây
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     const { id } = await context.params; // 📌 lấy id từ params
     const body = await req.json(); // 📌 data mới (title, content)
-    console.log("📌 Update ID:", id, "Body:", body);
+    // console.log("📌 Update ID:", id, "Body:", body);
 
+    throw new Error("Failed to update note"); // 👈 giả lập update failed
+    
     const updatedNote = await Note.findByIdAndUpdate(id, body, {
       new: true, // trả về document sau khi update
       runValidators: true,
@@ -67,14 +72,18 @@ export async function DELETE(
   try {
     await connectDB();
 
+    // 👇 giả lập delay N giây
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     const { id } = await context.params; // phải await params trước
     console.log("✅ params.id:", id);
-
+// 
     if (!id) {
       return NextResponse.json({ error: "Missing note id" }, { status: 400 });
     }
 
     const result = await Note.findByIdAndDelete(id);
+    // const result = await Note.findByIdAndDelete("68b1bce7586d2536b8079000");
     console.log("🗑  delete result:", result);
 
     if (!result) {

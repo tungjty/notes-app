@@ -13,7 +13,10 @@ export async function GET() {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 500 });
     }
-    return NextResponse.json({ error: "An unknown error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unknown error occurred" },
+      { status: 500 }
+    );
   }
 }
 
@@ -23,6 +26,12 @@ export async function POST(req: Request) {
     await connectDB();
     const body = await req.json();
 
+    // 👇 giả lập delay N giây
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // 👇 giả lập create note failedÏ
+    // throw new Error("Failed to add note");
+
     const newNote = await Note.create(body);
 
     return NextResponse.json({ message: "Note created", note: newNote });
@@ -31,6 +40,9 @@ export async function POST(req: Request) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 500 });
     }
-    return NextResponse.json({ error: "An unknown error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unknown error occurred" },
+      { status: 500 }
+    );
   }
 }
