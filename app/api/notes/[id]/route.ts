@@ -82,8 +82,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Missing note id" }, { status: 400 });
     }
 
+    // throw new Error("Failed to delete note"); // 👈 giả lập delete failed
+
     const result = await Note.findByIdAndDelete(id);
-    // const result = await Note.findByIdAndDelete("68b1bce7586d2536b8079000");
     console.log("🗑  delete result:", result);
 
     if (!result) {
