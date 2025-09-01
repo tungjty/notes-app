@@ -61,28 +61,29 @@ export function useNotes() {
     },
   });
 
-  // Delete note
+  // Delete note (optimistic update)
   const deleteNote = useMutation({
     mutationFn: deleteNoteApi,
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: ["notes"] });
+
       const prevNotes = queryClient.getQueryData<Note[]>(["notes"]);
-      queryClient.setQueryData(
-        ["notes"],
-        prevNotes?.map((note) =>
-          note._id === id ? { ...note, isDeleting: true } : note
-        )
+
+      // 🔥 remove ngay lập tức khỏi UI
+      queryClient.setQueryData<Note[]>(["notes"], (old) =>
+        old ? old.filter((note) => note._id !== id) : []
       );
+
+      addToast({
+        title: "Deleting note...",
+        description: "Please wait while we delete the note.",
+        color: "warning",
+      });
+
       return { prevNotes };
     },
-    onSuccess: () => {
-      addToast({
-        title: "Note deleted 🗑️",
-        description: "The note was deleted successfully.",
-        color: "success",
-      });
-    },
     onError: (_err, _id, ctx) => {
+      // rollback
       if (ctx?.prevNotes) {
         queryClient.setQueryData(["notes"], ctx.prevNotes);
       }
@@ -90,6 +91,13 @@ export function useNotes() {
         title: "Delete note failed",
         description: "Could not delete the note. Try again.",
         color: "danger",
+      });
+    },
+    onSuccess: () => {
+      addToast({
+        title: "Note deleted 🗑️",
+        description: "The note was deleted successfully.",
+        color: "success",
       });
     },
     onSettled: () => {

@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import Note from "@/models/Note";
 import { connectDB } from "@/lib/mongodb";
 
-// 📌 GET all notes
+// 📌 GET all notes sorted by createdAt DESC
 export async function GET() {
   try {
     await connectDB();
-    const notes = await Note.find({});
+    const notes = await Note.find({}).sort({ createdAt: -1 });  // _id: -1
     return NextResponse.json(notes);
   } catch (err: unknown) {
     console.error("❌ GET error:", err);

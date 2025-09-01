@@ -77,7 +77,7 @@ export async function DELETE(
 
     const { id } = await context.params; // phải await params trước
     console.log("✅ params.id:", id);
-// 
+
     if (!id) {
       return NextResponse.json({ error: "Missing note id" }, { status: 400 });
     }

@@ -112,7 +112,7 @@ export default function NoteCard({ note, onDeleteAction }: NoteCardProps) {
                 <Button
                   color="danger"
                   onPress={handleConfirmDelete}
-                  isLoading={note.isDeleting}
+                  // isLoading={note.isDeleting}
                 >
                   Yes, Delete
                 </Button>

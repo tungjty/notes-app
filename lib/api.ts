@@ -3,6 +3,8 @@ export type Note = {
   title: string;
   content: string;
   isDeleting?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 // Fetch Notes
