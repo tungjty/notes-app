@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import ReactQueryProvider from "@/components/reactquery-providers"; // React Query provider
+import { HeroProvider } from "@/components/heroui-provider";
+import { Navbar } from "@/components/navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +26,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html suppressHydrationWarning lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        {/* HeroUI quản lý theme & UI context */}
+        <HeroProvider themeProps={{ attribute: "class", defaultTheme: "light", "enableSystem": true }}>
+          <Navbar />
+          {/* React Query Providers */}
+          <ReactQueryProvider>{children}</ReactQueryProvider>
+        </HeroProvider>
       </body>
     </html>
   );

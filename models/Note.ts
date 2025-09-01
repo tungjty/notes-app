@@ -10,7 +10,7 @@ const NoteSchema = new Schema<INote>(
     title: { type: String, required: true },
     content: { type: String, required: true },
   },
-  { timestamps: true }
+  { timestamps: true } // 👉 auto thêm createdAt & updatedAt
 );
 
 export default mongoose.models.Note || mongoose.model<INote>("Note", NoteSchema);

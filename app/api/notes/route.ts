@@ -2,18 +2,21 @@ import { NextResponse } from "next/server";
 import Note from "@/models/Note";
 import { connectDB } from "@/lib/mongodb";
 
-// 📌 GET all notes
+// 📌 GET all notes sorted by createdAt DESC
 export async function GET() {
   try {
     await connectDB();
-    const notes = await Note.find({});
+    const notes = await Note.find({}).sort({ createdAt: -1 });  // _id: -1
     return NextResponse.json(notes);
   } catch (err: unknown) {
     console.error("❌ GET error:", err);
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 500 });
     }
-    return NextResponse.json({ error: "An unknown error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unknown error occurred" },
+      { status: 500 }
+    );
   }
 }
 
@@ -23,6 +26,12 @@ export async function POST(req: Request) {
     await connectDB();
     const body = await req.json();
 
+    // 👇 giả lập delay N giây
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // 👇 giả lập create note failedÏ
+    // throw new Error("Failed to add note");
+
     const newNote = await Note.create(body);
 
     return NextResponse.json({ message: "Note created", note: newNote });
@@ -31,6 +40,9 @@ export async function POST(req: Request) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 500 });
     }
-    return NextResponse.json({ error: "An unknown error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unknown error occurred" },
+      { status: 500 }
+    );
   }
 }
