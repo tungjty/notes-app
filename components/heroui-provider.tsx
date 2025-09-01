@@ -28,6 +28,7 @@ export function HeroProvider({ children, themeProps }: ProvidersProps) {
     <HeroUIProvider navigate={router.push}>
       <ToastProvider placement="bottom-right" />
       <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
+      {/* <NextThemesProvider attribute="class" defaultTheme="light" enableSystem>{children}</NextThemesProvider> */}
     </HeroUIProvider>
   );
 }
