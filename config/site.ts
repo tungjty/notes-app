@@ -13,8 +13,20 @@ export const siteConfig = {
       href: "/docs",
     },
     {
-      label: "Blog",
-      href: "/blog",
+      label: "Register",
+      href: "/register",
+    },
+    {
+      label: "Login",
+      href: "/login",
+    },
+    {
+      label: "Login (simple cookie)",
+      href: "/login/simple/cookie",
+    },
+    {
+      label: "Login (HttpOnly cookie)",
+      href: "/login/httpOnly/cookie",
     },
   ],
   navMenuItems: [
