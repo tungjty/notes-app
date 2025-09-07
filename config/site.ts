@@ -28,6 +28,10 @@ export const siteConfig = {
       label: "Login (HttpOnly cookie)",
       href: "/login/httpOnly/cookie",
     },
+    {
+      label: "Login (HttpOnly + Zustand)",
+      href: "/login/zustand-httpOnly",
+    },
   ],
   navMenuItems: [
     {

@@ -1,22 +1,20 @@
-// 🔑 Refresh Token Rotation là gì?
-// Khi user login, server tạo ra refreshToken A và gửi về client (lưu trong cookie HttpOnly).
-// Lần đầu access token hết hạn → client gửi refreshToken A lên để xin token mới.
-// Server cấp accessToken mới + refreshToken B, đồng thời xoá/thu hồi refreshToken A.
-// Lần sau client chỉ có thể dùng refreshToken B (A bị revoke rồi).
-// Nếu hacker có được refreshToken A → không thể dùng được nữa (vì đã bị thay thế).
+// Flow demo
 
-// 1. Khi login
-// Tạo refreshToken → hash jti trong payload refreshToken (dùng bcrypt) → lưu vào DB.
-// Gửi refreshToken gốc về client (cookie HttpOnly).
+// Login:
+// Server tạo access token (ngắn hạn, ví dụ 15 phút) trả về client.
+// Server tạo refresh token (dài hạn, 7 ngày), hash jti lưu DB, set trong HttpOnly cookie.
+// Client nhận access token → lưu vào Zustand store (memory only).
 
-// 2. Khi refresh
-// Verify refreshToken hợp lệ về mặt chữ ký JWT.
-// So sánh hash jti trong payload của refreshToken với DB. Nếu không match → reject.
-// Nếu match → cấp refreshToken mới, hash và lưu vào DB (ghi đè).
-// Gửi refreshToken mới cho client (cookie HttpOnly).
-
-// 3. Khi logout
-// clear cookies + xóa refresh token jti hash DB (set null) → đảm bảo không reuse lại được.
+// Fetch docs:
+// Client lấy access token từ Zustand → gửi kèm Authorization: Bearer ....
+// Server verify access token:
+// Nếu valid → trả dữ liệu docs.
+// Nếu expired/invalid → server trả 401 Unauthorized.
+// Client bắt lỗi 401 → gọi refresh API:
+// Refresh API đọc refresh token từ HttpOnly cookie.
+// Nếu hợp lệ (bcrypt.compare jti hash đúng) → server cấp access token mới.
+// Client update access token vào Zustand store → fetch lại docs.
+// Nếu refresh cũng fail → logout.
 
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
@@ -109,14 +107,7 @@ export async function POST(req: Request) {
     // maxAge: tính bằng giây.
     // expires: mốc thời gian cụ thể.
 
-    // 👉 Set HttpOnly cookies
-    res.cookies.set("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 15, // (60 * 15 = 15 phút)
-    });
+    // 👉 Set HttpOnly cookie
     res.cookies.set("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

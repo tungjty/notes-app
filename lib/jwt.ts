@@ -66,3 +66,14 @@ export function verifyRefreshToken(token: string) {
   }
   return decoded;
 }
+
+
+// Helper: (decode, không verify signature)
+export function decodeToken(token: string) {
+  try {
+    const decoded: unknown = jwt.decode(token);
+    return decoded;
+  } catch {
+    return null;
+  }
+}

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongoose";
 import User from "@/models/User";
-import { verifyRefreshToken } from "@/lib/jwt";
 import { cookies } from "next/headers";
+import { decodeToken } from "@/lib/jwt";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
+
     await connectDB();
 
     // 👉 Lấy refresh token từ cookie
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
 
     if (refreshToken) {
       try {
-        const payload = verifyRefreshToken(refreshToken) as { userId: string };
+        const payload = decodeToken(refreshToken) as { userId: string };
 
         // 👉 Xóa refresh token hash trong DB
         await User.findByIdAndUpdate(payload.userId, {
@@ -26,20 +27,16 @@ export async function POST(req: Request) {
       }
     }
 
-    // 👉 Xóa cookies
-    const res = NextResponse.json({ message: "Logged out successfully" });
 
-    res.cookies.set("accessToken", "", { maxAge: 0, path: "/" });
+    // 👉 Xóa refresh token in httpOnly cookies
+    const res = NextResponse.json({ message: "Logged out successfully" });
     res.cookies.set("refreshToken", "", { maxAge: 0, path: "/" });
 
     return res;
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("❌ Logout error:", error);
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
     return NextResponse.json(
-      { error: "An unknown error occurred" },
+      { error: "Logout error occurred" },
       { status: 500 }
     );
   }
