@@ -51,7 +51,7 @@ export default function LoginPage() {
   const handleFetchDocs = async () => {
     try {
       const res = await authClient.fetchWithAuth(
-        "/api/docs/zustand-httpOnly--"
+        "/api/docs/zustand-httpOnly"
       );
       const data = await res.json();
       setMessage(data);
