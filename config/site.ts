@@ -21,12 +21,16 @@ export const siteConfig = {
       href: "/login",
     },
     {
-      label: "Login (simple cookie)",
+      label: "Login (cookie)",
       href: "/login/simple/cookie",
     },
     {
-      label: "Login (HttpOnly cookie)",
+      label: "Login (HttpOnly)",
       href: "/login/httpOnly/cookie",
+    },
+    {
+      label: "Login (Blacklist)",
+      href: "/login/test/blacklist",
     },
     {
       label: "Login (HttpOnly + Zustand)",

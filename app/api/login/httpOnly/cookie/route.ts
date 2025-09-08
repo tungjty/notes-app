@@ -94,7 +94,6 @@ export async function POST(req: Request) {
 
     // sameSite
     // Bảo vệ chống CSRF (Cross-Site Request Forgery).
-
     // Strict: chỉ gửi cookie nếu request từ cùng site/domain. → An toàn nhất.
     // Lax: mặc định hiện nay, cho phép một số request “an toàn” (GET, HEAD, link click) gửi cookie cross-site.
     // None: cookie sẽ được gửi trong mọi request cross-site → bắt buộc phải kèm Secure.

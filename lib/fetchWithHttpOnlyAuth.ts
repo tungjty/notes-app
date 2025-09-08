@@ -1,6 +1,7 @@
 // lib/fetchWithHttpOnlyAuth.ts
 export async function fetchWithHttpOnlyAuth(
-  input: RequestInfo | URL
+  input: RequestInfo | URL,
+  refreshInput: RequestInfo | URL = "/api/refresh/httpOnly/cookie"
 ): Promise<Response> {
   // Gọi API chính
   const res = await fetch(input, {
@@ -20,18 +21,19 @@ export async function fetchWithHttpOnlyAuth(
   }
 
   // Nếu access token expired → thử refresh
-  const refreshRes = await fetch("/api/refresh/httpOnly/cookie", {
+  const refreshRes = await fetch(refreshInput, {
     method: "POST",
   });
   const refreshData = await refreshRes.json();
 
   if (!refreshRes.ok) {
-    throw new Error(refreshData?.error || "Không thể refresh token");
+    throw new Error(refreshData?.error || "Không thể refresh token ...");
   }
 
   // ✅ Retry lại request ban đầu
   const retry = await fetch(input, {
     method: "GET",
+    credentials: "include", // 👈 đảm bảo cookie đi kèm request (an toàn)
     // ⚡ Không cần headers Authorization → browser tự gửi cookie HttpOnly
   });
   return retry;
