@@ -22,4 +22,5 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
+// Nếu model đã tồn tại thì dùng lại, tránh lỗi khi hot reload
 export default mongoose.models.User || mongoose.model<IUser>("User", UserSchema);

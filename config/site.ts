@@ -17,24 +17,28 @@ export const siteConfig = {
       href: "/register",
     },
     {
-      label: "Login",
+      label: "LocalStore",
       href: "/login",
     },
     {
-      label: "Login (cookie)",
+      label: "Cookie",
       href: "/login/simple/cookie",
     },
     {
-      label: "Login (HttpOnly)",
+      label: "HttpOnly",
       href: "/login/httpOnly/cookie",
     },
     {
-      label: "Login (Blacklist)",
+      label: "Blacklist",
       href: "/login/test/blacklist",
     },
     {
-      label: "Login (HttpOnly + Zustand)",
+      label: "HttpOnly + Zustand",
       href: "/login/zustand-httpOnly",
+    },
+    {
+      label: "Session",
+      href: "/login/session",
     },
   ],
   navMenuItems: [

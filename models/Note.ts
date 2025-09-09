@@ -13,4 +13,5 @@ const NoteSchema = new Schema<INote>(
   { timestamps: true } // 👉 auto thêm createdAt & updatedAt
 );
 
+// Nếu model đã tồn tại thì dùng lại, tránh lỗi khi hot reload
 export default mongoose.models.Note || mongoose.model<INote>("Note", NoteSchema);

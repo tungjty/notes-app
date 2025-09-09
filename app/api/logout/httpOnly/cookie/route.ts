@@ -4,7 +4,7 @@ import User from "@/models/User";
 import { verifyRefreshToken } from "@/lib/jwt";
 import { cookies } from "next/headers";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     await connectDB();
 
