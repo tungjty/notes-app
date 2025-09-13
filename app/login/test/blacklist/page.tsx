@@ -37,7 +37,7 @@ export default function LoginPage() {
   return (
     <div className="flex justify-center items-center h-screen">
       <Card className="p-6 w-96">
-        <h2 className="text-2xl font-bold mb-4">Login - a@gmail.com</h2>
+        <h2 className="text-2xl font-bold mb-4">Login</h2>
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <Button type="submit" color="primary">
             Đăng nhập (fake)

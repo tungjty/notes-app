@@ -5,10 +5,6 @@ export const siteConfig = {
   description: "Make beautiful websites regardless of your design experience.",
   navItems: [
     {
-      label: "Home",
-      href: "/",
-    },
-    {
       label: "Docs",
       href: "/docs",
     },
@@ -39,6 +35,22 @@ export const siteConfig = {
     {
       label: "Session",
       href: "/login/session",
+    },
+    {
+      label: "CSRF",
+      href: "/login/test/session-csrf/",
+    },
+    {
+      label: "SameSite(test)",
+      href: "/login/test/SameSite",
+    },
+    {
+      label: "evil(test)",
+      href: "/login/test/SameSite/evil",
+    },
+    {
+      label: "CORS(ping)",
+      href: "/login/test/cors-test",
     },
   ],
   navMenuItems: [

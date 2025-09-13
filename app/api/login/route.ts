@@ -6,7 +6,7 @@ import { signAccessToken, signRefreshToken } from "@/lib/jwt";
 import LoginAttempt from "@/models/LoginAttempt";
 
 const MAX_FAILS = 5; // cho phép tối đa 5 lần
-const LOCK_TIME = 1 * 60 * 1000; // khóa 1 phút
+const LOCK_TIME = 5 * 60 * 1000; // khóa 5 phút
 
 export async function POST(req: Request) {
   try {
