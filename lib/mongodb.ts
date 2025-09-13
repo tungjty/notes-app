@@ -1,28 +1,63 @@
-import mongoose from "mongoose";
-
-const MONGODB_URI = process.env.MONGODB_URI as string;
-
-if (!MONGODB_URI) {
-  throw new Error("⚠️ Please define the MONGODB_URI environment variable");
+// This approach is taken from https://github.com/vercel/next.js/tree/canary/examples/with-mongodb
+import { MongoClient, ServerApiVersion } from "mongodb"
+ 
+if (!process.env.MONGODB_URI) {
+  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"')
 }
-
-interface MongooseGlobal {
-  mongoose?: {
-    conn: typeof mongoose | null;
-    promise: Promise<typeof mongoose> | null;
-  };
+ 
+const uri = process.env.MONGODB_URI
+const options = {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
 }
-
-const globalWithMongoose = global as typeof global & MongooseGlobal;
-
-const cached = globalWithMongoose.mongoose || { conn: null, promise: null };
-
-export async function connectDB() {
-  if (cached.conn) return cached.conn;
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((mongoose) => mongoose);
+ 
+let client: MongoClient
+ 
+if (process.env.NODE_ENV === "development") {
+  // In development mode, use a global variable so that the value
+  // is preserved across module reloads caused by HMR (Hot Module Replacement).
+  const globalWithMongo = global as typeof globalThis & {
+    _mongoClient?: MongoClient
   }
-  cached.conn = await cached.promise;
-  return cached.conn;
+ 
+  if (!globalWithMongo._mongoClient) {
+    globalWithMongo._mongoClient = new MongoClient(uri, options)
+  }
+  client = globalWithMongo._mongoClient
+} else {
+  // In production mode, it's best to not use a global variable.
+  client = new MongoClient(uri, options)
 }
+ 
+// Export a module-scoped MongoClient. By doing this in a
+// separate module, the client can be shared across functions.
+export default client
+
+
+// chatGPT suggested adding this
+
+// lib/mongodb.ts
+// import { MongoClient } from "mongodb";
+
+// const uri = process.env.MONGODB_URI!;
+// if (!uri) throw new Error("⚠️ MONGODB_URI chưa được cấu hình!");
+
+// let client: MongoClient;
+// let clientPromise: Promise<MongoClient>;
+
+// if (process.env.NODE_ENV === "development") {
+//   // để hot-reload không tạo nhiều kết nối
+//   if (!(global as any)._mongoClientPromise) {
+//     client = new MongoClient(uri);
+//     (global as any)._mongoClientPromise = client.connect();
+//   }
+//   clientPromise = (global as any)._mongoClientPromise;
+// } else {
+//   client = new MongoClient(uri);
+//   clientPromise = client.connect();
+// }
+
+// export default clientPromise;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Note from "@/models/Note";
-import { connectDB } from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongoose";
 
 // 📌 GET one note
 export async function GET(
@@ -43,7 +43,7 @@ export async function PUT(
     const body = await req.json(); // 📌 data mới (title, content)
     // console.log("📌 Update ID:", id, "Body:", body);
 
-    // throw new Error("Failed to update note"); // 👈 giả lập update failed
+    // throw new Error("❌ Failed to update note"); // 👈 giả lập update failed
 
     const updatedNote = await Note.findByIdAndUpdate(id, body, {
       new: true, // trả về document sau khi update
@@ -72,7 +72,7 @@ export async function DELETE(
   try {
     await connectDB();
 
-    // 👇 giả lập delay N giây
+    // 👇 giả lập delay
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const { id } = await context.params; // phải await params trước
@@ -82,7 +82,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Missing note id" }, { status: 400 });
     }
 
-    // throw new Error("Failed to delete note"); // 👈 giả lập delete failed
+    // throw new Error("❌ Failed to delete note"); // 👈 giả lập delete failed
 
     const result = await Note.findByIdAndDelete(id);
     console.log("🗑  delete result:", result);
@@ -95,11 +95,9 @@ export async function DELETE(
     }
 
     return NextResponse.json({ message: "Note deleted", deletedNote: result });
-  } catch (err: unknown) {
-    let errorMessage = "Something went wrong";
-    if (err instanceof Error) {
-      errorMessage = err.message;
-    }
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } catch (error: unknown) {
+    console.error("❌ Delete note error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
