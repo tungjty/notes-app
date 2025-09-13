@@ -8,7 +8,7 @@ export default function PingTest() {
 
   const callPing = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/test/SameSite/ping", {
+      const res = await fetch("http://localhost:3000/api/ping-cors", {
         method: "GET",
         credentials: "include", // 👈 Quan trọng: gửi cookie kèm theo
       });
@@ -37,7 +37,7 @@ export default function PingTest() {
 
   const callPingPost = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/test/SameSite/ping", {
+      const res = await fetch("http://localhost:3000/api/ping-cors", {
         method: "POST",
         credentials: "include", // gửi cookie kèm theo
         headers: {

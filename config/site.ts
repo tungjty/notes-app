@@ -50,7 +50,7 @@ export const siteConfig = {
     },
     {
       label: "CORS(ping)",
-      href: "/login/test/cors-test",
+      href: "/cors-test",
     },
   ],
   navMenuItems: [
