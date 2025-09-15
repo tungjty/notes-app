@@ -1,12 +1,10 @@
-
 export default function EvilPage() {
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-xl font-bold text-red-600">Evil.com 😈</h1>
       <p>
-        Form này sẽ POST sang{" "}
-        <code>http://localhost:3000/api/test/SameSite/profile</code> domain
-        chính.
+        Form này sẽ POST đến {" "}
+        <code>http://localhost:3000/api/test/SameSite/profile</code>
       </p>
 
       <form

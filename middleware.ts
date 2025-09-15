@@ -1,49 +1,79 @@
-// Giải thích nhanh
-
-// ALLOWED_ORIGINS → chỉ liệt kê domain frontend thật sự.
 // Với request CORS preflight (OPTIONS), middleware sẽ trả về header CORS luôn.
-// Nếu origin không nằm trong whitelist → trả về 403 Forbidden.
+
 // Cookie HttpOnly (sessionId) chỉ được gửi khi:
 // +++ Access-Control-Allow-Credentials: true
 // +++ Origin hợp lệ.
 
-// Test flow
-
-// Gọi API từ http://localhost:3000 → pass.
-// Gọi API từ https://evil.com → bị chặn (403 hoặc browser block).
-
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import jsonAllowed from "@/lib/allowed-origins.json"; // ✅ Edge runtime cho phép
 
-// ✅ chỉ cho phép domain này gọi API
-const ALLOWED_ORIGINS = [
-  "https://myapp.com",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "https://notes-app-tan-sigma-44.vercel.app"
-];
+// ✅ Helper: lấy ra các domains có thể gọi API
+function getAllowedOrigins(): string[] {
+  if (process.env.ALLOWED_ORIGINS)
+    return process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim());
+
+  return jsonAllowed.origins;
+}
 
 export function middleware(req: NextRequest) {
   // Origin là header browser tự thêm khi có cross-origin request.
   const origin = req.headers.get("origin") || "";
+  // same-site (origin === null/undefined) hoặc direct call
+  const isSameOrigin = !origin || origin === req.nextUrl.origin;
+  const method = req.method;
+  const url = new URL(req.url);
+  const ALLOWED_ORIGINS = getAllowedOrigins();
 
-  // 👉 Cho phép same-origin (origin === null/undefined) hoặc trong whitelist
-  // Nếu request đến từ cùng domain (same-origin) → origin thường không có → mình cho pass luôn.
-  // Nếu là cross-origin → phải match ALLOWED_ORIGINS.
-  if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+  // /api/public/* → cho phép mọi origin (*) nhưng no credentials.
+  if (url.pathname.startsWith("/api/public")) {
+    console.log("Gọi Public API -> cho phép đi tiếp ...");
+
+    const res = NextResponse.next();
+    res.headers.set("Access-Control-Allow-Origin", "*");
+    res.headers.set("Access-Control-Allow-Credentials", "false"); // no credentials includes 👈
+    res.headers.set("Access-Control-Allow-Methods", "GET,OPTIONS");
+    res.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    return res;
+  }
+
+  // /api/private/* → chỉ cho http://localhost:3000 + cho credentials.
+  if (url.pathname.startsWith("/api/private")) {
+    console.log("Gọi Private API -> chỉ cho phép localhost:3000 ...");
+
+    const privateOrigins = [
+      "https://notes-app-tan-sigma-44.vercel.app",
+      "http://localhost:3000",
+    ];
+    if (origin && !privateOrigins.includes(origin))
+      // ❌ Origin không phải nội bộ → block request
+      return new NextResponse("403 Forbidden - private route", { status: 403 });
+
+    const res = NextResponse.next();
+    res.headers.set("Access-Control-Allow-Origin", origin);
+    res.headers.set("Access-Control-Allow-Credentials", "true"); // no credentials includes 👈
+    res.headers.set("Access-Control-Allow-Methods", "GET,OPTIONS");
+    res.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    return res;
+  }
+
+  // 👉 Cho phép same-origin hoặc cross-origin phải match ALLOWED_ORIGINS.
+  if (isSameOrigin || ALLOWED_ORIGINS.includes(origin)) {
+    const allowedMethods = ["GET", "OPTIONS"];
+
+    // cùng domain → OK ✅, khác domain thì POST PUT DELETE → 403
+    if (!isSameOrigin && !allowedMethods.includes(method)) {
+      return new NextResponse(
+        `403 Forbidden! Method ${method} is not allowed by CORS`,
+        { status: 403 }
+      );
+    }
+
     const res = NextResponse.next();
 
-    // Access-Control-Allow-Origin: http://127.0.0.1:4000
-    // Cho phép origin cụ thể này được truy cập response. Nếu khác origin → browser block.
     res.headers.set("Access-Control-Allow-Origin", origin);
-    // Cho phép gửi cookie/Authorization header đi kèm request.
-    res.headers.set("Access-Control-Allow-Credentials", "true");
-    // Chỉ định các HTTP methods nào được phép
-    res.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET,POST,PUT,DELETE,OPTIONS"
-    );
-    // Cho phép client gửi thêm custom header (VD: X-CSRF-Token).
+    res.headers.set("Access-Control-Allow-Credentials", "true"); // credentials includes 👈
+    res.headers.set("Access-Control-Allow-Methods", "GET,PUT,DELETE,OPTIONS");
     res.headers.set(
       "Access-Control-Allow-Headers",
       "Content-Type, X-CSRF-Token, Authorization"
@@ -53,11 +83,16 @@ export function middleware(req: NextRequest) {
       "Access-Control-Expose-Headers",
       "Access-Control-Allow-Origin, Access-Control-Allow-Credentials"
     );
+    res.headers.set("Vary", "Origin"); // 👈 safe for cache
 
     // Nếu là preflight (OPTIONS) thì return luôn
     if (req.method === "OPTIONS") {
-      // 🟢 Log preflight request
       console.log("🔎 Preflight OPTIONS received from:", origin);
+      // Next.js (App Router + Route Handler) xử lý OPTIONS mặc định
+      // Khi bạn dùng route handlers (app/api/.../route.ts), Next.js sẽ tự động handle OPTIONS cho bạn nếu bạn không override.
+      // Nó sẽ trả về 204 No Content mặc định, kèm header Access-Control-Allow-Origin
+
+      // 👇 Cho nên không cần đoạn code này 👇
       return new NextResponse(null, { headers: res.headers });
     }
 
@@ -73,5 +108,5 @@ export function middleware(req: NextRequest) {
 
 // Áp dụng middleware cho tất cả route trong /api/*
 export const config = {
-  matcher: "/api/:path*",
+  matcher: ["/api/:path*"],
 };
