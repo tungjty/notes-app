@@ -3,12 +3,12 @@ export default function EvilPage() {
     <div className="p-6 space-y-4">
       <h1 className="text-xl font-bold text-red-600">Evil.com 😈</h1>
       <p>
-        Form này sẽ POST đến {" "}
+        Form này sẽ GET đến {" "}
         <code>http://localhost:3000/api/test/SameSite/profile</code>
       </p>
 
       <form
-        method="POST"
+        method="GET"
         action="http://localhost:3000/api/test/SameSite/profile"
       >
         <button
