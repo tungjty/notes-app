@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/mongoose";
 import crypto from "crypto";
 import SessionCSRF from "@/models/SessionCSRF";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     await connectDB();
 

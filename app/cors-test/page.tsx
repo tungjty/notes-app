@@ -60,7 +60,6 @@ export default function PingTest() {
       // Nếu khác origin -> browser chặn kết quả trước khi JS thấy được -> luôn vào catch()
       if (!res.ok) {
         // ❌ Server trả về lỗi (403, 405, 500...)
-        console.log(`lỗi (403, 405, 500...) `);
         const text = await res.text(); // đọc plain text luôn (middleware trả text)
         setResult(`❌ ${text}`);
         return;
@@ -108,7 +107,7 @@ export default function PingTest() {
         className="mt-4"
         variant="flat"
         color="success"
-        onPress={() => callPublicPrivateAPI("public", "POST")}
+        onPress={() => callPublicPrivateAPI("public", "GET")}
       >
         Call GET /api/public/ping
       </Button>

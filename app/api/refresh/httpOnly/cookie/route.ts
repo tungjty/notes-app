@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { connectDB } from "@/lib/mongoose";
 import User from "@/models/User";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "@/lib/jwt";
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     await connectDB();
 
