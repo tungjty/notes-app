@@ -9,13 +9,11 @@ import { useState } from "react";
 
 export default function PingTest() {
   const [result, setResult] = useState("");
-  const [publicRes, setPublicRes] = useState("");
-  const [privateRes, setPrivateRes] = useState("");
 
-  const callPing = async () => {
+  const callPingGet = async () => {
     try {
       // const res = await fetch("https://notes-app-tan-sigma-44.vercel.app/api/ping-cors", {
-      const res = await fetch("http://localhost:3000/api/ping-cors", {
+      const res = await fetch("https://notes-app-tan-sigma-44.vercel.app/api/ping-cors", {
         method: "GET",
         credentials: "include", // 👈 Quan trọng: gửi cookie kèm theo
         headers: {
@@ -39,7 +37,7 @@ export default function PingTest() {
       );
     } catch (err: unknown) {
       setResult(
-        "❌ Error: " +
+        "❌ Lỗi (CORS blocked or server unreachable): " +
           (err instanceof Error ? err.message : "Unknown error occurred")
       );
     }
@@ -61,25 +59,41 @@ export default function PingTest() {
       setResult(`✅ POST response=${JSON.stringify(data)}`);
     } catch (err: unknown) {
       setResult(
-        "❌ Error: " +
+        "❌ Lỗi (CORS blocked or server unreachable): " +
           (err instanceof Error ? err.message : "Unknown error occurred")
       );
     }
   };
 
-  const callPublicPrivateAPI = async (isPublic = false) => {
-    const segment = isPublic? "public" : "private";
+  const callPublicPrivateAPI = async (
+    segment: "public" | "private",
+    method: string
+  ) => {
     try {
       const res = await fetch(`http://localhost:3000/api/${segment}/ping`, {
-        method: "GET",
-        // credentials: "include",
+        method,
+        credentials: "include", // gửi cookie nếu có
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
+      // Nếu cùng same-origin (http://localhost:3000 gọi http://localhost:3000)
+      // -> thấy (res.ok === false) khi server return 403/405.
+      // Nếu khác origin -> browser chặn kết quả trước khi JS thấy được -> luôn vào catch()
+      if (!res.ok) {
+        // ❌ Server trả về lỗi (403, 405, 500...)
+        console.log(`lỗi (403, 405, 500...) `);
+        const text = await res.text(); // đọc plain text luôn (middleware trả text)
+        setResult(`❌ ${text}`);
+        return;
+      }
+      // ✅ OK → parse json
       const data = await res.json();
       setResult(`✅ GET response=${JSON.stringify(data)}`);
     } catch (err: unknown) {
       setResult(
-        "❌ Error: " +
+        "❌ Lỗi (CORS blocked or server unreachable): " +
           (err instanceof Error ? err.message : "Unknown error occurred")
       );
     }
@@ -95,7 +109,7 @@ export default function PingTest() {
         className="mt-4"
         variant="flat"
         color="primary"
-        onPress={callPing}
+        onPress={callPingGet}
       >
         Call GET /api/ping
       </Button>
@@ -116,8 +130,8 @@ export default function PingTest() {
       <Button
         className="mt-4"
         variant="flat"
-        color="warning"
-        onPress={() => callPublicPrivateAPI(true)}
+        color="success"
+        onPress={() => callPublicPrivateAPI("public", "GET")}
       >
         Call GET /api/public/ping
       </Button>
@@ -130,7 +144,7 @@ export default function PingTest() {
         className="mt-4"
         variant="flat"
         color="danger"
-        onPress={() => callPublicPrivateAPI(false)}
+        onPress={() => callPublicPrivateAPI("private", "GET")}
       >
         Call GET /api/private/ping
       </Button>
