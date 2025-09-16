@@ -10,11 +10,10 @@ import { useState } from "react";
 export default function PingTest() {
   const [result, setResult] = useState("");
 
-  const callPingGet = async () => {
+  const callPing = async (method: string) => {
     try {
-      // const res = await fetch("https://notes-app-tan-sigma-44.vercel.app/api/ping-cors", {
-      const res = await fetch("https://notes-app-tan-sigma-44.vercel.app/api/ping-cors", {
-        method: "GET",
+      const res = await fetch("http://localhost:3001/api/ping-cors", {
+        method,
         credentials: "include", // 👈 Quan trọng: gửi cookie kèm theo
         headers: {
           "Content-Type": "application/json",
@@ -35,28 +34,6 @@ export default function PingTest() {
           data
         )}`
       );
-    } catch (err: unknown) {
-      setResult(
-        "❌ Lỗi (CORS blocked or server unreachable): " +
-          (err instanceof Error ? err.message : "Unknown error occurred")
-      );
-    }
-  };
-
-  const callPingPost = async () => {
-    try {
-      const res = await fetch("http://localhost:3000/api/ping-cors", {
-        method: "POST",
-        credentials: "include", // gửi cookie kèm theo
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": "x-csrf-token-abc123",
-        },
-        body: JSON.stringify({ hello: "world" }),
-      });
-
-      const data = await res.json();
-      setResult(`✅ POST response=${JSON.stringify(data)}`);
     } catch (err: unknown) {
       setResult(
         "❌ Lỗi (CORS blocked or server unreachable): " +
@@ -109,7 +86,7 @@ export default function PingTest() {
         className="mt-4"
         variant="flat"
         color="primary"
-        onPress={callPingGet}
+        onPress={() => callPing("GET")}
       >
         Call GET /api/ping
       </Button>
@@ -117,7 +94,7 @@ export default function PingTest() {
         className="mt-4"
         variant="flat"
         color="secondary"
-        onPress={callPingPost}
+        onPress={() => callPing("POST")}
       >
         Call POST /api/ping
       </Button>
@@ -131,7 +108,7 @@ export default function PingTest() {
         className="mt-4"
         variant="flat"
         color="success"
-        onPress={() => callPublicPrivateAPI("public", "GET")}
+        onPress={() => callPublicPrivateAPI("public", "POST")}
       >
         Call GET /api/public/ping
       </Button>

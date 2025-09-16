@@ -25,10 +25,12 @@ export function middleware(req: NextRequest) {
   // Origin là header browser tự thêm khi có cross-origin request.
   // same-site & GET : origin === null) -> lấy origin của API url
   const origin = req.headers.get("origin") ?? req.nextUrl.origin;
+  const isSameOrigin = !origin || origin === req.nextUrl.origin;
+
   console.log(`origin :`, req.headers.get("origin"));
   console.log(`NextUrl :`, req.nextUrl);
-  const isSameOrigin = !origin || origin === req.nextUrl.origin;
   console.log(`isSameOrigin :`, isSameOrigin);
+  
   const { pathname } = req.nextUrl;
   const rule = findCorsRule(pathname);
   const ALLOWED_ORIGINS = getAllowedOrigins();
@@ -55,7 +57,7 @@ export function middleware(req: NextRequest) {
     // Nếu method không được phép
     if (!rule.methods.includes(req.method)) {
       return new NextResponse(
-        "405 Method Not Allowed - Method ${method} is not allowed by CORS",
+      `405 Method Not Allowed - Method ${req.method} is not allowed by CORS`,
         {
           status: 405,
         }
