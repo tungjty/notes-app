@@ -11,6 +11,8 @@ export async function POST() {
 
     const cookieStore = await cookies();
     const refreshToken = cookieStore.get("refreshToken")?.value;
+    
+    // console.log("Server nhận refreshToken = ", refreshToken);
     if (!refreshToken) {
       return NextResponse.json(
         { error: "Phiên đăng nhập đã hết hạn, vui lòng login lại" },

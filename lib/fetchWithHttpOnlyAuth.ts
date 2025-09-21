@@ -34,7 +34,6 @@ export async function fetchWithHttpOnlyAuth(
   const retry = await fetch(input, {
     method: "GET",
     credentials: "include", // 👈 đảm bảo cookie đi kèm request (an toàn)
-    // ⚡ Không cần headers Authorization → browser tự gửi cookie HttpOnly
   });
   return retry;
 }

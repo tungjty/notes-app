@@ -1,123 +1,77 @@
-// Với request CORS preflight (OPTIONS), middleware sẽ trả về header CORS luôn.
-
 // Cookie HttpOnly (sessionId) chỉ được gửi khi:
 // +++ Access-Control-Allow-Credentials: true
 // +++ Origin hợp lệ.
 
 import { NextRequest, NextResponse } from "next/server";
-import jsonAllowed from "@/lib/allowed-origins.json"; // ✅ Edge runtime cho phép
-import rulesConfig from "@/lib/cors-rules.json";
+import { handleCors } from "@/lib/middleware/handleCors";
+import { handleAuth } from "@/lib/middleware/handleAuth";
 
-// ✅ Helper: lấy ra các domains có thể gọi API
-function getAllowedOrigins(): string[] {
-  if (process.env.ALLOWED_ORIGINS)
-    return process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim());
+export async function middleware(req: NextRequest) {
+  console.log("👉 Bắt đầu middleware...");
 
-  return jsonAllowed.origins;
-}
-
-// Helper: tìm rule theo pathname
-function findCorsRule(pathname: string) {
-  return rulesConfig.rules.find((rule) => pathname.startsWith(rule.path));
-}
-
-export function middleware(req: NextRequest) {
-  // Origin là header browser tự thêm khi có cross-origin request.
-  // same-site & GET : origin === null) -> lấy origin của API url
-  const origin = req.headers.get("origin") ?? req.nextUrl.origin;
+  const origin = req.headers.get("origin");
   const isSameOrigin = !origin || origin === req.nextUrl.origin;
 
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`origin :`, req.headers.get("origin"));
-    console.log(`NextUrl :`, req.nextUrl);
-    console.log(`isSameOrigin :`, isSameOrigin);
-  }
+  // 🚀 Case 1: cross-origin → chỉ check CORS
+  if (!isSameOrigin) {
+    console.log("🌐 Cross-origin request → chạy CORS");
 
-  const { pathname } = req.nextUrl;
-  const rule = findCorsRule(pathname);
-  const ALLOWED_ORIGINS = getAllowedOrigins();
+    const corsResult = handleCors(req);
 
-  // Nếu có rule (ex, `/api/public`, `/api/private` ...)
-  if (rule) {
-    if (process.env.NODE_ENV !== "production")
-      console.log(
-        `🔧 CORS matched rule for ${pathname}, 
-        origin=${origin}, 
-        methods=${rule.methods.join(",")}`
-      );
-
-    // Check origin có nằm trong allowed origins?
-    const isAllowed =
-      rule.origins.includes("*") || rule.origins.includes(origin);
-
-    if (!isAllowed) {
-      return new NextResponse("403 Forbidden - Origin is not allowed by CORS", {
-        status: 403,
+    if (corsResult?.flags["x-preflight"]) {
+      console.log("✅ Preflight request");
+      return new NextResponse(null, {
+        status: 200,
+        headers: corsResult.headers,
       });
     }
 
-    // Nếu method không được phép
-    if (!rule.methods.includes(req.method)) {
+    if (corsResult?.flags["x-blocked"]) {
+      console.log("🚫 Origin không hợp lệ → block");
+      return new NextResponse("403 Forbidden - Origin is not allowed by CORS", {
+        status: 403,
+        // headers: corsResult.headers,
+      });
+    }
+
+    if (corsResult?.flags["x-method-not-allowed"]) {
+      console.log(`🚫 Method ${req.method} không hợp lệ → block`);
       return new NextResponse(
         `405 Method Not Allowed - Method ${req.method} is not allowed by CORS`,
         {
           status: 405,
+          // headers: corsResult,
         }
       );
     }
 
-    //  ✅ Hợp lệ → cho đi tiếp + set header
-    const res = NextResponse.next();
-    res.headers.set("Access-Control-Allow-Origin", origin);
-    res.headers.set("Access-Control-Allow-Credentials", "true");
-    res.headers.set("Access-Control-Allow-Methods", rule.methods.join(","));
-    res.headers.set("Access-Control-Allow-Headers", "Content-Type");
-    res.headers.set("Vary", "Origin"); // 👈 safe for cache
-
-    return res;
+    console.log("✅ CORS passed → cho đi tiếp");
+    return NextResponse.next({ headers: corsResult?.headers || {} });
   }
 
-  // Chưa có rule nào ( ex, `/api/test`, `/api/logout`...) 👇
-  if (process.env.NODE_ENV !== "production")
-    console.log(`Chưa có rule nào được set với pathname: `, pathname);
-
-  // ❌ Origin không hợp lệ → block request
-  if (!isSameOrigin && !ALLOWED_ORIGINS.includes(origin)) {
-    return new NextResponse(
-      "403 Forbidden! Please check CORS strict in middleware for this origin",
-      { status: 403 }
+  // 🚦 CASE 2: Same-origin → check Auth
+  console.log("🔒 Same-origin request → chạy Auth");
+  const authResult = await handleAuth(req);
+  if (authResult.flags["x-redirect"]) {
+    console.log(
+      `"🙁 [ Middleware ] redirect → /login (reason: ${authResult.flags.reason})`
     );
+
+    return NextResponse.redirect(new URL("/login/httpOnly/cookie", req.url));
+  }
+  if (authResult.response) {
+    console.log(`🍪 [ Middleware ] Forward response từ handleAuth (reason: ${authResult.flags.reason})`);
+    return authResult.response;
   }
 
-  // 👇 Cho phép same-origin hoặc cross-origin phải match ALLOWED_ORIGINS.
-  const res = NextResponse.next();
-  res.headers.set("Access-Control-Allow-Origin", origin);
-  res.headers.set("Access-Control-Allow-Credentials", "true"); // credentials includes 👈
-  // res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, X-CSRF-Token, Authorization"
-  );
-  // 👇 Cho phép client đọc lại các header này
-  res.headers.set(
-    "Access-Control-Expose-Headers",
-    "Access-Control-Allow-Origin, Access-Control-Allow-Credentials"
-  );
-  res.headers.set("Vary", "Origin"); // 👈 safe for cache
-
-  // Nếu là preflight (OPTIONS) thì return luôn
-  if (req.method === "OPTIONS") {
-    console.log("🔎 Preflight OPTIONS received from:", origin);
-    // Next.js (App Router + Route Handler) xử lý OPTIONS mặc định
-    // trả về 204 No Content mặc định, kèm header Access-Control-Allow-Origin
-    // 👇 Cho nên không cần đoạn code này 👇
-    return new NextResponse(null, { headers: res.headers });
-  }
-
-  return res;
+  // handleAuth() 👉 result không set flag gì = pass
+  console.log("✅ Auth passed → cho đi tiếp");
+  // Next.js luôn resolve Promise<null | undefined> thành NextResponse.next()
+  // cho nên đoạn code ở dưới là không cần thiết👇
+  return NextResponse.next();
 }
 
 // Áp dụng middleware cho tất cả route trong /api/*
 export const config = {
-  matcher: ["/api/:path*"],
+  matcher: ["/api/:path*", "/dashboard/:path*", "/"],
 };
