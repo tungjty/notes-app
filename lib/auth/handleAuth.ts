@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose"; // verify accessToken bằng jose (hỗ trợ Edge runtime)
+import { AuthReason } from "./authReasons";
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET as string;
 const encoder = new TextEncoder();
@@ -20,21 +21,27 @@ async function verifyAccessToken(token: string) {
 export interface AuthResult {
   flags: {
     "x-redirect"?: "1";
-    // "x-refresh"?: "1";
-    reason?:
-      | "token_missing"
-      | "token_invalid"
-      | "token_refreshed"
-      | "token_refresh_failed"
-      | "auth_error";
+    reason?: AuthReason;
   };
   response?: NextResponse;
+}
+
+export function redirectWithReason(
+  req: NextRequest,
+  loginPath: string,
+  reason: AuthReason,
+): NextResponse {
+  const loginUrl = new URL(loginPath, req.url);
+  // gắn search params
+  loginUrl.searchParams.set("reason", reason);
+  loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
+
+  return NextResponse.redirect(loginUrl);
 }
 
 // Danh sách route cần bỏ qua
 const skipRoutes = [
   "/api/login",
-  // "/api/notes",
   "/api/logout",
   "/api/refresh",
   "/api/docs",
@@ -55,18 +62,18 @@ export async function handleAuth(req: NextRequest): Promise<AuthResult> {
   // ✅ Nếu pathname bắt đầu bằng bất kỳ route nào trong skipRoutes -> bỏ qua
   if (shouldSkip(pathname)) {
     console.log("✅ Skip route → cho đi tiếp");
-    return result; // không set flag gì = pass
+    return result; // không set flag gì 👉 pass
   }
 
   // Lấy accessToken từ cookie
   const token = req.cookies.get("accessToken")?.value;
 
+  // ❌ Chưa login
   if (!token) {
     console.warn(
       "⚠️ [Auth] Không tìm thấy accessToken trong cookie -> redirect"
     );
-    result.flags["x-redirect"] = "1";
-    result.flags.reason = "token_missing";
+    result.flags = { "x-redirect": "1", reason: AuthReason.Unauthenticated };
     return result;
   }
 
@@ -75,14 +82,17 @@ export async function handleAuth(req: NextRequest): Promise<AuthResult> {
   // ✅ token ok -> cho đi tiếp
   if (payload) {
     console.log("✅ Verify accessToken thành công -> đi tiếp ...");
-    return result;
+    return result; // không set flag gì 👉 pass
   }
 
   // // Lấy refreshToken từ cookie
   const refreshToken = req.cookies.get("refreshToken")?.value;
   if (!payload && !refreshToken) {
-    result.flags["x-redirect"] = "1";
-    result.flags.reason = "token_invalid";
+    console.warn(
+      "⚠️ [Auth] accessToken hết hạn/không hợp lệ, không có refreshToken -> redirect..."
+    );
+    result.flags = { "x-redirect": "1", reason: AuthReason.SessionExpired };
+
     return result;
   }
 
@@ -108,33 +118,28 @@ export async function handleAuth(req: NextRequest): Promise<AuthResult> {
       const data = await refreshRes.json();
       errorMessage = data?.error || JSON.stringify(data);
 
-      console.error(
-        "❌ [Auth] Refresh token failed:",
-        errorMessage
-      );
-      result.flags["x-redirect"] = "1";
-      result.flags.reason = "token_refresh_failed";
+      console.error("❌ [Auth] Refresh token failed:", errorMessage);
+
+      result.flags = {"x-redirect": "1", reason: AuthReason.TokenRefreshFailed,};
+
       return result;
     }
 
     // 🚀 Refresh thành công -> forward lại Set-Cookie cho browser
     const res = NextResponse.next();
     const setCookies = refreshRes.headers.get("set-cookie");
-    if (setCookies) {
-      console.log(`return setCookies: `, setCookies);
-      res.headers.append("set-cookie", setCookies);
-    }
+    if (setCookies) res.headers.append("set-cookie", setCookies);
 
     console.log("✅ [Auth] Refresh thành công -> tiếp tục request");
     // result.flags["x-refresh"] = "1";
-    result.flags.reason = "token_refreshed";
+    result.flags.reason = AuthReason.TokenRefreshed;
     result.response = res; // 👈 forward response về middleware
     return result;
-
   } catch (err) {
     console.error("❌ [Auth] Lỗi server/network khi gọi handleAuth:", err);
-    result.flags["x-redirect"] = "1";
-    result.flags.reason = "auth_error";
+
+    result.flags = {"x-redirect": "1", reason: AuthReason.AuthError,
+    };
     return result;
   }
 }

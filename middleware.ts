@@ -3,8 +3,8 @@
 // +++ Origin hợp lệ.
 
 import { NextRequest, NextResponse } from "next/server";
-import { handleCors } from "@/lib/middleware/handleCors";
-import { handleAuth } from "@/lib/middleware/handleAuth";
+import { handleCors } from "@/lib/cors/handleCors";
+import { handleAuth, redirectWithReason } from "@/lib/auth/handleAuth";
 
 export async function middleware(req: NextRequest) {
   console.log("👉 Bắt đầu middleware...");
@@ -54,13 +54,15 @@ export async function middleware(req: NextRequest) {
   const authResult = await handleAuth(req);
   if (authResult.flags["x-redirect"]) {
     console.log(
-      `"🙁 [ Middleware ] redirect → /login (reason: ${authResult.flags.reason})`
+      `🙁 [ Middleware ] redirect → /login (reason: ${authResult.flags.reason})`
     );
-
-    return NextResponse.redirect(new URL("/login/httpOnly/cookie", req.url));
+    return redirectWithReason(req, "/login/httpOnly/cookie", authResult.flags.reason!);
   }
+
   if (authResult.response) {
-    console.log(`🍪 [ Middleware ] Forward response từ handleAuth (reason: ${authResult.flags.reason})`);
+    console.log(
+      `🍪 [ Middleware ] Forward response từ handleAuth (reason: ${authResult.flags.reason})`
+    );
     return authResult.response;
   }
 

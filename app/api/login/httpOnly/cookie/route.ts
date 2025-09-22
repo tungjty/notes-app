@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     const user = await User.findOne({ email });
     if (!user) {
       return NextResponse.json(
-        { error: "❌ Không tìm thấy user trong db" },
+        { error: "Không tìm thấy user trong db" },
         { status: 401 }
       );
     }
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return NextResponse.json(
-        { error: "❌ Sai password, vui lòng thử lại" },
+        { error: "Sai password, vui lòng thử lại" },
         { status: 401 }
       );
     }

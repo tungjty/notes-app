@@ -23,11 +23,18 @@
 import { useState } from "react";
 import { Input, Button, Card } from "@heroui/react";
 import { fetchWithHttpOnlyAuth } from "@/lib/fetchWithHttpOnlyAuth";
+import { useAuthMessage } from "@/lib/hooks/useAuthMessage";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // ✅ khởi tạo state từ hook
+  const { message, setMessage } = useAuthMessage();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +46,14 @@ export default function LoginPage() {
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await res.json();
+    if (!res.ok) {
+      const data = await res.json();
+      setMessage(data.error || "Đăng nhập thất bại");
+      return;
+    }
 
-    if (res.ok) setMessage(`Welcome ${data.user.name || data.user.email} 🎉`);
-    else setMessage(data.error || "❌ Có lỗi xảy ra");
+    // ✅ Login thành công → redirect
+    router.push(callbackUrl);
   };
 
   const handleFetchDocs = async () => {
@@ -51,7 +62,9 @@ export default function LoginPage() {
       const data = await res.json();
       setMessage(JSON.stringify(data));
     } catch (err: unknown) {
-       setMessage(err instanceof Error ? `❌ ${err.message}` : "❌ Unknown error");
+      setMessage(
+        err instanceof Error ? `${err.message}` : "Unknown error"
+      );
     }
   };
 
@@ -98,7 +111,7 @@ export default function LoginPage() {
           Fetch docs (HttpOnly cookie)
         </Button>
 
-        {message && <p className="mt-4 text-center">{message}</p>}
+        {message && <p className="mt-4 text-center">❌ {message}</p>}
       </Card>
     </div>
   );
