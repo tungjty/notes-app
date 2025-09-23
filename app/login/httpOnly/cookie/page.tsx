@@ -1,13 +1,15 @@
-"use client";
-
-import { Suspense } from "react";
+// app/login/page.tsx
 import LoginForm from "./LoginForm";
 
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      {/* Vì login page dùng useSearchParams() -> Next.js bắt phải wrap trong Suspense boundary */}
-      <LoginForm />
-    </Suspense>
-  );
+interface LoginPageProps {
+  searchParams?: Record<string, string | string[] | undefined>;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams; // 👈 await props
+  const reason = typeof params?.reason === "string" ? params.reason : null;
+  const callbackUrl =
+    typeof params?.callbackUrl === "string" ? params.callbackUrl : "/dashboard";
+
+  return <LoginForm reason={reason} callbackUrl={callbackUrl} />;
 }

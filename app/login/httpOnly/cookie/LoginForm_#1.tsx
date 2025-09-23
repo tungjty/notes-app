@@ -23,21 +23,20 @@
 import { useState } from "react";
 import { Input, Button, Card } from "@heroui/react";
 import { fetchWithHttpOnlyAuth } from "@/lib/fetchWithHttpOnlyAuth";
-import { useAuthMessage } from "@/lib/hooks/useAuthMessage_#2";
-import { useRouter } from "next/navigation";
+import { useAuthMessage } from "@/lib/hooks/useAuthMessage_#1";
+import { useRouter, useSearchParams } from "next/navigation";
 
-type LoginFormProps = {
-  reason: string | null;
-  callbackUrl: string;
-};
+import { loginAction } from "./loginAction";
 
-export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // ✅ khởi tạo state từ hook
-  const { message, setMessage } = useAuthMessage(reason);
+  const { message, setMessage } = useAuthMessage();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,9 +78,17 @@ export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
     <div className="flex justify-center items-center h-screen">
       <Card className="p-6 w-96">
         <h2 className="text-2xl font-bold mb-4">Login - a@gmail.com</h2>
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+        {/* <form onSubmit={handleLogin} className="flex flex-col gap-4"> */}
+        <form
+          action={async (formData) => {
+            const res = await loginAction(formData, callbackUrl);
+            if (res?.error) setMessage(res.error);
+          }}
+          className="flex flex-col gap-4"
+        >
           <Input
             label="Email"
+            name="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -89,6 +96,7 @@ export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
           />
           <Input
             label="Password"
+            name="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -112,7 +120,7 @@ export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
           Fetch docs (HttpOnly cookie)
         </Button>
 
-        {message && <p className="mt-4 text-center">❌ {message}</p>}
+        {message && <p className="mt-4 text-center">{message}</p>}
       </Card>
     </div>
   );
