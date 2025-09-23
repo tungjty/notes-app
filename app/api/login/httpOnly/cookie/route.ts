@@ -27,7 +27,6 @@ import { signAccessToken, signRefreshToken } from "@/lib/jwt";
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
-
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email và password là bắt buộc" },

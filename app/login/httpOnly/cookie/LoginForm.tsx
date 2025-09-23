@@ -26,6 +26,8 @@ import { fetchWithHttpOnlyAuth } from "@/lib/fetchWithHttpOnlyAuth";
 import { useAuthMessage } from "@/lib/hooks/useAuthMessage";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { loginAction } from "./loginAction";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,9 +78,17 @@ export default function LoginPage() {
     <div className="flex justify-center items-center h-screen">
       <Card className="p-6 w-96">
         <h2 className="text-2xl font-bold mb-4">Login - a@gmail.com</h2>
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+        {/* <form onSubmit={handleLogin} className="flex flex-col gap-4"> */}
+        <form action={async (formData) => {
+          const res = await loginAction(formData, callbackUrl);
+          if (res?.error) {
+            setMessage(res.error);
+          }
+        }} className="flex flex-col gap-4">
+
           <Input
             label="Email"
+            name="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -86,6 +96,7 @@ export default function LoginPage() {
           />
           <Input
             label="Password"
+            name="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

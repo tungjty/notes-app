@@ -53,7 +53,6 @@ export async function middleware(req: NextRequest) {
   console.log("🔒 Same-origin request → chạy Auth");
 
   const authResult = await handleAuth(req);
-  
   if (authResult.flags["x-redirect"]) {
     console.log(
       `🙁 [ Middleware ] redirect → /login (reason: ${authResult.flags.reason})`
