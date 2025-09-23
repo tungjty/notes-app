@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     await connectDB();
 
     // 👇 (optional) giả lập delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // 👇 giả lập login failed
     // throw new Error("❌ Failed to login");
@@ -112,14 +112,17 @@ export async function POST(req: Request) {
     res.cookies.set("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      // Vì sao ở local thì ok, còn Vercel thì lần mở tab đầu lại redirect về login?
+      // ÷Trường hợp này xảy ra khá thường khi deploy lên Vercel, nguyên nhân chủ yếu 
+      // đến từ middleware chạy trước khi trình duyệt kịp gửi cookie trong tab mới
+      sameSite: "lax", // nếu strict bị drop trong tab mới (production mode)
       path: "/",
       maxAge: 60 * 15, // (60 * 15 = 15 phút)
     });
     res.cookies.set("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "lax", // nếu strict bị drop trong tab mới (production mode)
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 ngày
     });

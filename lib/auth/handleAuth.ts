@@ -45,6 +45,7 @@ const skipRoutes = [
   "/api/logout",
   "/api/refresh",
   "/api/docs",
+  // "/api/notes",
   "/api/register",
   "/api/forgot-password",
 ];
