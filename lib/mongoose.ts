@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
 
+import { checkEnv } from "@/lib/checkEnv";
+
+checkEnv(["MONGODB_URI"]); // 👈 gọi check ở đây
+
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
