@@ -1,7 +1,6 @@
 // import config from "./tailwind.config.ts";
 // export default config;
 
-
 import { heroui } from "@heroui/theme";
 
 /** @type {import('tailwindcss').Config} */

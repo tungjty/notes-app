@@ -28,8 +28,8 @@ export async function GET() {
 
   // Trả data notes thật ở đây
   const notes = [
-    { id: "1", content: "Note A" },
-    { id: "2", content: "Note B" },
+    { id: "1", content: "Note A (test)" },
+    { id: "2", content: "Note B (test)" },
   ];
 
   return NextResponse.json(notes, { headers: { "Cache-Control": "no-store" } });

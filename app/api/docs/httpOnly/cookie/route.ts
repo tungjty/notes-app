@@ -29,6 +29,7 @@ export async function GET(req: Request) {
 
   try {
     const payload = verifyAccessToken(token);
+    
     return NextResponse.json([
       { id: 1, title: "HttpOnly Doc A" },
       { id: 2, title: "HttpOnly Doc B" },
