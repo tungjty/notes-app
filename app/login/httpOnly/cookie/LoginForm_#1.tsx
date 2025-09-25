@@ -24,39 +24,39 @@ import { useState } from "react";
 import { Input, Button, Card } from "@heroui/react";
 import { fetchWithHttpOnlyAuth } from "@/lib/fetchWithHttpOnlyAuth";
 import { useAuthMessage } from "@/lib/hooks/useAuthMessage_#1";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import { loginAction } from "./loginAction";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
   const searchParams = useSearchParams();
+  // const router = useRouter();
 
   // ✅ khởi tạo state từ hook
   const { message, setMessage } = useAuthMessage();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage("");
+  // const handleLogin = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setMessage("");
 
-    const res = await fetch("/api/login/httpOnly/cookie", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+  //   const res = await fetch("/api/login/httpOnly/cookie", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ email, password }),
+  //   });
 
-    if (!res.ok) {
-      const data = await res.json();
-      setMessage(data.error || "Đăng nhập thất bại");
-      return;
-    }
+  //   if (!res.ok) {
+  //     const data = await res.json();
+  //     setMessage(data.error || "Đăng nhập thất bại");
+  //     return;
+  //   }
 
-    // ✅ Login thành công → redirect
-    router.push(callbackUrl);
-  };
+  //   // ✅ Login thành công → redirect
+  //   router.push(callbackUrl);
+  // };
 
   const handleFetchDocs = async () => {
     try {

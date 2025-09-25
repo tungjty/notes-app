@@ -1,11 +1,9 @@
-import React from 'react'
+export const dynamic = "force-dynamic";
 
-const page = () => {
+export default function DashboardPage() {
   return (
     <div>
-       <h1 className="text-xl font-bold">Dashboard Page</h1>
+      <h1 className="text-xl font-bold">Dashboard content...</h1>
     </div>
-  )
+  );
 }
-
-export default page

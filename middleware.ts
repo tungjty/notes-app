@@ -72,6 +72,12 @@ export async function middleware(req: NextRequest) {
   // Next.js luôn resolve Promise<null | undefined> thành NextResponse.next()
   // cho nên đoạn code ở dưới là không cần thiết👇
   return NextResponse.next();
+  // const res = NextResponse.next();
+
+  // // 👇 chặn cache ở edge/CDN
+  // res.headers.set("Cache-Control", "no-store, must-revalidate");
+
+  // return res;
 }
 
 // Áp dụng middleware cho tất cả route trong /api/*
