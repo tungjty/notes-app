@@ -16,7 +16,7 @@ export async function loginAction(formData: FormData, callback_url: string) {
   await connectDB();
 
   // 👇 (optional) giả lập delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   const user = await User.findOne({ email });
 
@@ -63,7 +63,4 @@ export async function loginAction(formData: FormData, callback_url: string) {
   console.log("✅ [ loginAction.ts ] Login success, redirect -> /dashboard");
 
   redirect(callback_url);
-
-
-  return { error: "Email hoặc mật khẩu không đúng" };
 }
