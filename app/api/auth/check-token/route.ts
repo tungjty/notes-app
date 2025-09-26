@@ -18,6 +18,9 @@ export async function GET() {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
 
+   // 👇 (optional) giả lập delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   if (!checkTokenValid(accessToken)) {
     // 401 để client biết phải redirect
     return NextResponse.json(
