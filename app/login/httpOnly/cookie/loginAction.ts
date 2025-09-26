@@ -20,11 +20,11 @@ export async function loginAction(formData: FormData, callback_url: string) {
 
   const user = await User.findOne({ email });
 
-  if (!user) return { error: "Không tìm thấy user trong db" };
+  if (!user) return { error: "Không tìm thấy user, vui lòng thử lại" };
 
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid)
-    return { error: "Sai password, vui lòng thử lại" };
+    return { error: "Nhập sai password, vui lòng thử lại" };
 
 
   // 👉 Tạo access token & refresh token
