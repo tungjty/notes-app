@@ -82,5 +82,5 @@ export async function middleware(req: NextRequest) {
 
 // Áp dụng middleware cho tất cả route trong /api/*
 export const config = {
-  matcher: ["/api/:path*", "/dashboard/:path*", "/"],
+  matcher: ["/api/:path*", "/dashboard/:path*"],
 };
