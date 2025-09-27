@@ -85,7 +85,8 @@ export default function LoginForm({ reason, callbackUrl, hasSession }: LoginForm
           >
             → Logout trước nhé
           </Button>
-
+          
+          {message && <p className="mt-4 text-center">{message}</p>}
         </Card>
       </div>
     );
