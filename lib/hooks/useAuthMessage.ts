@@ -10,6 +10,7 @@ import { AuthReason } from "../auth/authReasons";
  * - Cho phép setMessage() thủ công (vd khi login fail)
  */
 export function useAuthMessage(reason: string | null) {
+
   const reasonAsAuth = reason as AuthReason | null; // type assertion
   // init state từ reason
   const [message, setMessage] = useState<string | null>(() =>

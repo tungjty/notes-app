@@ -43,6 +43,7 @@ export function redirectWithReason(
 const skipRoutes = [
   "/api/login",
   "/api/logout",
+  "/api/auth/me",
   "/api/refresh",
   "/api/docs",
   "/api/register",

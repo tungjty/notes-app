@@ -24,6 +24,9 @@ import { Input, Button, Card } from "@heroui/react";
 import { fetchWithHttpOnlyAuth } from "@/lib/fetchWithHttpOnlyAuth";
 import { useAuthMessage } from "@/lib/hooks/useAuthMessage";
 import { loginAction } from "./loginAction";
+import { useSessionCheck } from "@/lib/hooks/useSessionCheck";
+import { AuthReason } from "@/lib/auth/authReasons";
+import { useRouter } from "next/navigation";
 
 type LoginFormProps = {
   reason: string | null;
@@ -31,32 +34,49 @@ type LoginFormProps = {
 };
 
 export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
-  // const [email, setEmail] = useState("");
-  // const [password, setPassword] = useState("");
-  // const router = useRouter();
+  const router = useRouter();
 
   // ✅ khởi tạo state từ hook
   const { message, setMessage } = useAuthMessage(reason);
 
-  // const handleLogin = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setMessage("");
+  const handleLogout = async () => {
+    try {
+      // 👉 Xoá cookies bằng server (simple demo: overwrite với Max-Age=0)
+      const res = await fetch("/api/logout/httpOnly/cookie", { method: "POST" });
 
-  //   const res = await fetch("/api/login/httpOnly/cookie", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ email, password }),
-  //   });
+      if (res.ok) {
+        router.push(`/login/httpOnly/cookie?reason=${AuthReason.LogoutSucces}`);
+      } else {
+        setMessage("Có lỗi xảy ra khi logout, vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("❌ Logout error:", error);
+      setMessage("Có lỗi xảy ra khi logout, vui lòng thử lại.");
+    }
+  };
 
-  //   if (!res.ok) {
-  //     const data = await res.json();
-  //     setMessage(data.error || "Đăng nhập thất bại");
-  //     return;
-  //   }
+  const { loading, code } = useSessionCheck();
+  if (loading) return <p>⏳ Đang kiểm tra session...</p>;
+  if (code === AuthReason.AuthSuccess) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Card className="p-6 w-96">
+          <p className="mb-8 text-center text-green-100">
+            Bạn đã đăng nhập rồi. Bạn muốn đăng nhập tài khoản khác?
+          </p>
+          <Button
+            className="w-full"
+            variant="flat"
+            color="warning"
+            onPress={handleLogout}
+          >
+            → Logout trước nhé
+          </Button>
 
-  //   // ✅ Login thành công → redirect
-  //   router.push(callbackUrl);
-  // };
+        </Card>
+      </div>
+    );
+  }
 
   const handleFetchDocs = async () => {
     try {
@@ -66,12 +86,6 @@ export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
     } catch (err: unknown) {
       setMessage(err instanceof Error ? `${err.message}` : "Unknown error");
     }
-  };
-
-  const handleLogout = async () => {
-    // 👉 Xoá cookies bằng server (simple demo: overwrite với Max-Age=0)
-    await fetch("/api/logout/httpOnly/cookie", { method: "POST" });
-    setMessage("Bạn đã đăng xuất, hẹn gặp lại 🎉");
   };
 
   return (
@@ -106,7 +120,7 @@ export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
         <Button
           className="mt-4"
           variant="flat"
-          color="danger"
+          color="warning"
           onPress={handleLogout}
         >
           Logout (HttpOnly cookie)
@@ -116,7 +130,7 @@ export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
           Fetch docs (HttpOnly cookie)
         </Button>
 
-        {message && <p className="mt-4 text-center">❌ {message}</p>}
+        {message && <p className="mt-4 text-center">{message}</p>}
       </Card>
     </div>
   );

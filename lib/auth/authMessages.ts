@@ -8,6 +8,8 @@ export const authMessages: Record<AuthReason, string> = {
   [AuthReason.TokenRefreshed]: "Phiên làm việc đã được làm mới",
   [AuthReason.TokenRefreshFailed]: "Không thể làm mới phiên đăng nhập, vui lòng đăng nhập lại",
   [AuthReason.AuthError]: "Có lỗi xảy ra khi xác thực, vui lòng thử lại",
+  [AuthReason.AuthSuccess]: "Phiên đăng nhập vẫn còn hiệu lực",
+  [AuthReason.LogoutSucces]: "Bạn đã đăng xuất thành công"
 };
 
 // Helper
