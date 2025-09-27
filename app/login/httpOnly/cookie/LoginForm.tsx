@@ -61,7 +61,7 @@ export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Card className="p-6 w-96">
-          <p className="mb-8 text-center text-green-100">
+          <p className="mb-8 text-center">
             Bạn đã đăng nhập rồi. Bạn muốn đăng nhập tài khoản khác?
           </p>
           <Button

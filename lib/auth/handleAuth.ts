@@ -40,7 +40,7 @@ export function redirectWithReason(
 }
 
 // Danh sách route cần bỏ qua
-const skipRoutes = [
+const AUTH_API_WHITELIST = [
   "/api/login",
   "/api/logout",
   "/api/auth/me",
@@ -49,12 +49,11 @@ const skipRoutes = [
   "/api/register",
   "/api/forgot-password",
   // "/api/notes",
-  // "/api/auth/check-token",
 ];
 
 // Helper function
 function shouldSkip(pathname: string): boolean {
-  return skipRoutes.some((route) => pathname.startsWith(route));
+  return AUTH_API_WHITELIST.some((route) => pathname.startsWith(route));
 }
 
 export async function handleAuth(req: NextRequest): Promise<AuthResult> {
@@ -64,7 +63,7 @@ export async function handleAuth(req: NextRequest): Promise<AuthResult> {
 
   // ✅ Nếu pathname bắt đầu bằng bất kỳ route nào trong skipRoutes -> bỏ qua
   if (shouldSkip(pathname)) {
-    console.log("✅ Skip route → cho đi tiếp");
+    console.log("✅ Skip auth middleware for:", pathname);
     return result; // không set flag gì 👉 pass
   }
 

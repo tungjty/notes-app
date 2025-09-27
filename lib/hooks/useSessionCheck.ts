@@ -36,12 +36,12 @@ export function useSessionCheck() {
         } else {
           setState({ loading: false, code: data.code, error: data.error });
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!isMounted) return;
         setState({
           loading: false,
           code: null,
-          error: err.message || "Unexpected error",
+          error: err instanceof Error ? err.message : "Unknown error",
         });
       }
     }
