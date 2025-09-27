@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-2
+
 export default function DashboardPage() {
   return (
     <div>
