@@ -31,9 +31,10 @@ import { useRouter } from "next/navigation";
 type LoginFormProps = {
   reason: string | null;
   callbackUrl: string;
+  hasSession: boolean; // 👉 truyền từ page xuống
 };
 
-export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
+export default function LoginForm({ reason, callbackUrl, hasSession }: LoginFormProps) {
   const router = useRouter();
 
   // ✅ khởi tạo state từ hook
@@ -55,13 +56,25 @@ export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
     }
   };
 
-  const { loading, code } = useSessionCheck();
-  if (loading) return <p>⏳ Đang kiểm tra session...</p>;
-  if (code === AuthReason.AuthSuccess) {
+  const handleFetchDocs = async () => {
+    try {
+      const res = await fetchWithHttpOnlyAuth("/api/docs/httpOnly/cookie");
+      const data = await res.json();
+      setMessage(JSON.stringify(data));
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? `${err.message}` : "Unknown error");
+    }
+  };
+
+  // const { loading, code } = useSessionCheck();
+  // if (loading) return <p>⏳ Đang kiểm tra session...</p>;
+  // if (code === AuthReason.AuthSuccess) {
+
+  if (hasSession) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Card className="p-6 w-96">
-          <p className="mb-8 text-center">
+          <p className="mb-8 text-center text-green-200">
             Bạn đã đăng nhập rồi. Bạn muốn đăng nhập tài khoản khác?
           </p>
           <Button
@@ -72,21 +85,12 @@ export default function LoginForm({ reason, callbackUrl }: LoginFormProps) {
           >
             → Logout trước nhé
           </Button>
-
+          
+          {message && <p className="mt-4 text-center">{message}</p>}
         </Card>
       </div>
     );
   }
-
-  const handleFetchDocs = async () => {
-    try {
-      const res = await fetchWithHttpOnlyAuth("/api/docs/httpOnly/cookie");
-      const data = await res.json();
-      setMessage(JSON.stringify(data));
-    } catch (err: unknown) {
-      setMessage(err instanceof Error ? `${err.message}` : "Unknown error");
-    }
-  };
 
   return (
     <div className="flex justify-center items-center h-screen">

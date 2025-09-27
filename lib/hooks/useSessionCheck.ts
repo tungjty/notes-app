@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AuthReason } from "@/lib/auth/authReasons";
 
-type SessionState = {
-  loading: boolean;
-  code: AuthReason | null;
-  error: string | null;
-};
-
 export function useSessionCheck() {
-  const [state, setState] = useState<SessionState>({
+  const [state, setState] = useState({
     loading: true,
-    code: null,
-    error: null,
+    code: null as AuthReason | null,
+    error: null as string | null,
   });
+
+  const searchParams = useSearchParams(); 
+  const reason = searchParams.get("reason"); // 👈 dependency mới
 
   useEffect(() => {
     let isMounted = true;
@@ -23,7 +21,7 @@ export function useSessionCheck() {
       try {
         const res = await fetch("/api/auth/me", {
           method: "GET",
-          credentials: "include", // để gửi cookies HttpOnly
+          credentials: "include",
           cache: "no-store",
         });
 
@@ -51,7 +49,7 @@ export function useSessionCheck() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [reason]); // 👈 rerun khi query param thay đổi
 
   return state;
 }
